@@ -2,7 +2,8 @@ import numpy as np
 import math
 
 
-c = math.pow(10,-10)
+# constant c for calculate derivatives
+c = math.pow(10,-15)
 
 
 def d1_cal(x,f): #calculates derivative f bY x
@@ -13,14 +14,15 @@ def d2_cal(x1,x2,f): #calculates derivative f bY x1
     return float(f(x1,x2) - f(x1-c,x2))/float(c)
 
 
+# loss functions
 def mse_loss(y_pred,y):
     return ((y_pred-y)**2)/2
 
 
-#activation functions
+# activation functions
 def relu(input):
-    # print(input)
     return max(0,input)
+
 
 def relu_n(input):
     if input>=0:
@@ -28,11 +30,13 @@ def relu_n(input):
     else:
         return 0.01*input
 
+
 def step(input):
     if input>=0:
         return 1
     else:
         return -1
+
 
 class Perceptron():
     def __init__(self,W,activation):
@@ -55,7 +59,7 @@ class Perceptron():
         def output_i(w,x):
             return w*x
         # print(self.output)
-        self.d_output.append(X) #is equal X?
+        self.d_output.append(X)
         # print(self.d_output)
         return self.output
 
@@ -70,23 +74,22 @@ class Perceptron():
 
     def update_weights(self):
         self.W = self.W_next
-        # self.output = []
-        # self.d_output = []
         return self.W
 
 
 class Network:
-    def __init__(self):
+    def __init__(self,l):
         self.nodes = []
         self.types = []
         self.loss = 1
+        self.loss_function = l
 
 
     def add_node(self,p,t,n):
         self.nodes.append(p)
         self.types.append(t)
 
-
+    
     def connect_nodes(self,p1,p2,n_of_w_in):
         p1.next.append((p2,n_of_w_in))
         # print(p1.next)
@@ -94,11 +97,10 @@ class Network:
         # print(p2.pre)
 
 
-
     def cal_loss(self,Y):
         for p in self.nodes:
             if self.types[self.nodes.index(p)] == 'output':
-                self.loss = sum([mse_loss(p.output[i],Y[i]) for i in range(len(Y))])/(len(Y))
+                self.loss = sum([self.loss_function(p.output[i],Y[i]) for i in range(len(Y))])/(len(Y))
                 print('====================')
                 return self.loss
 
@@ -131,7 +133,7 @@ class Network:
             if self.types[self.nodes.index(p)] == 'output':
                 for pre in p.pre:
                     to_update.add(pre)
-                self.d_loss = [d2_cal(p.output[i],Y[i],mse_loss) for i in range(len(Y))]
+                self.d_loss = [d2_cal(p.output[i],Y[i],self.loss_function) for i in range(len(Y))]
                 for i in range(len(Y)):
                     p.c.append(self.d_loss[i])
                     p.cal_next_W(alpha,Y,i)
@@ -166,13 +168,14 @@ class Network:
             p.c = []
             p.update_weights()
         
-        
 
-m = 1000 #num of data
+# testing...    
+m = 100 #num of data
 n = 3 #num of input features
-alpha = 1 #learning rate
+alpha = 0.1 #learning rate
 epoch = 1000 #num of epochs
 
+# data generation
 Y = [] #labels
 X = np.zeros((m,3)) #inputs
 for i in range(m):
@@ -180,6 +183,7 @@ for i in range(m):
         X[i][j] = np.random.normal()
     Y.append(sum([t**2 for t in X[i]])) 
 
+# initializing weights
 W = np.zeros(n) #initial weights
 for i in range(n):
     W[i]=np.random.normal()
@@ -189,15 +193,28 @@ for i in range(n):
 # print(Y[0])
 # input()
 
-N = Network()
+# building network
+N = Network(mse_loss)
 p1 = Perceptron(W,relu_n)
 p2 = Perceptron(W,relu_n)
 p3 = Perceptron(W[0:2],relu_n)
-N.add_node(p3,'output',2)
+p4 = Perceptron(W[0:2],relu_n)
+p5 = Perceptron(W[0:2],relu_n)
+
+N.add_node(p5,'output',2)
+N.add_node(p4,'hidden',2)
+N.add_node(p3,'hidden',2)
 N.add_node(p2,'input',3)
 N.add_node(p1,'input',3)
+
 N.connect_nodes(p1,p3,0)
 N.connect_nodes(p2,p3,1)
+N.connect_nodes(p1,p4,0)
+N.connect_nodes(p2,p4,1)
+N.connect_nodes(p3,p5,0)
+N.connect_nodes(p4,p5,1)
+
+# learning
 for i in range(epoch):
     print('--forward start--')
     N.forward_prop(X)
