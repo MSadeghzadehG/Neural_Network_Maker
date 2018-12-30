@@ -45,5 +45,6 @@ n.back_prop(alpha,Y)
 
 ## To-Do
 ##### add `compile` function to `Network` class that checks connections between nodes and their inputs
+##### add `Leyer` class for fully-connected networks
 ##### make a higher level api
 
