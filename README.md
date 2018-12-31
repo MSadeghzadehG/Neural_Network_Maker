@@ -1,5 +1,5 @@
 # Simple Neural Network Maker
-a neural network maker uses preceptrons to create a neural network and implements forward and back propagation procedure using Chain rule instead of Matrix-based approach
+neural network maker uses preceptrons to create a neural network and implements forward and back propagation procedure using Chain rule instead of Matrix-based approach
 
 ## Create Network:
 ### Create Perceptron:
